@@ -2,6 +2,7 @@ import csv
 import statistics
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 class Gaze:
     def __init__(self, id, pitch, yaw):
@@ -81,7 +82,7 @@ class GazeCollection:
                 pitch_error = gaze.pitch - other_gaze.pitch
                 yaw_error = gaze.yaw - other_gaze.yaw
                 errors.append((gaze.id, pitch_error, yaw_error))
-        if(visualize):
+        if visualize:
             for error in errors:
                 print(f"ID: {error[0]}, Pitch Error: {error[1]}, Yaw Error: {error[2]}")
         return errors
@@ -96,19 +97,82 @@ class GazeCollection:
         # Plot density plots for Pitch
         plt.figure(figsize=(12, 6))
         plt.subplot(1, 2, 1)
-        sns.kdeplot(pitch_data_1, label='Collection 1', shade=True)
-        sns.kdeplot(pitch_data_2, label='Collection 2', shade=True)
+        sns.kdeplot(pitch_data_1, label='Original', shade=True)
+        sns.kdeplot(pitch_data_2, label='Anonymized', shade=True)
         plt.title('Density Plot of Pitch')
         plt.legend()
 
         # Plot density plots for Yaw
         plt.subplot(1, 2, 2)
-        sns.kdeplot(yaw_data_1, label='Collection 1', shade=True)
-        sns.kdeplot(yaw_data_2, label='Collection 2', shade=True)
+        sns.kdeplot(yaw_data_1, label='Original', shade=True)
+        sns.kdeplot(yaw_data_2, label='Anonymized', shade=True)
         plt.title('Density Plot of Yaw')
         plt.legend()
 
         plt.tight_layout()
+        plt.show()
+        
+    def plot_angular_error_box_plots(self, angular_errors):
+        # Extract pitch and yaw errors
+        pitch_errors = [abs(error[1]) for error in angular_errors]
+        yaw_errors = [abs(error[2]) for error in angular_errors]
+
+        # Calculate means and standard deviations
+        mean_pitch_error = statistics.mean(pitch_errors)
+        std_pitch_error = statistics.stdev(pitch_errors)
+        mean_yaw_error = statistics.mean(yaw_errors)
+        std_yaw_error = statistics.stdev(yaw_errors)
+
+        # Print mean and standard deviation for pitch and yaw errors
+        print(f"Mean Pitch Error: {mean_pitch_error}")
+        print(f"Standard Deviation of Pitch Error: {std_pitch_error}")
+        print(f"Mean Yaw Error: {mean_yaw_error}")
+        print(f"Standard Deviation of Yaw Error: {std_yaw_error}")
+
+        # Create a DataFrame for plotting
+        data = {
+            'Pitch Error': pitch_errors,
+            'Yaw Error': yaw_errors
+        }
+
+        df = pd.DataFrame(data)
+
+        # Plot box plots for Pitch and Yaw Errors
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        sns.boxplot(y='Pitch Error', data=df, showfliers=False)
+        plt.title('Box Plot of Pitch Errors')
+
+        plt.subplot(1, 2, 2)
+        sns.boxplot(y='Yaw Error', data=df, showfliers=False)
+        plt.title('Box Plot of Yaw Errors')
+
+        plt.tight_layout()
+        plt.show()
+    
+    def plot_jointplot(self, other_collection):
+        # Extract pitch and yaw data from both collections
+        pitch_data_1 = [gaze.pitch for gaze in self.gazes]
+        yaw_data_1 = [gaze.yaw for gaze in self.gazes]
+        pitch_data_2 = [gaze.pitch for gaze in other_collection.gazes]
+        yaw_data_2 = [gaze.yaw for gaze in other_collection.gazes]
+
+        # Create a DataFrame for the joint plot
+        df1 = pd.DataFrame({
+            'Pitch': pitch_data_1,
+            'Yaw': yaw_data_1,
+            'Dataset': ['Original'] * len(pitch_data_1)
+        })
+        df2 = pd.DataFrame({
+            'Pitch': pitch_data_2,
+            'Yaw': yaw_data_2,
+            'Dataset': ['Anonymized'] * len(pitch_data_2)
+        })
+
+        df = pd.concat([df1, df2])
+
+        # Plot the joint plot with hue to differentiate datasets
+        sns.jointplot(x='Pitch', y='Yaw', data=df, hue='Dataset', kind='scatter')
         plt.show()
 
 def read_csv(filepath):
@@ -122,14 +186,17 @@ def read_csv(filepath):
             collection.add_gaze(Gaze(id, pitch, yaw))
     return collection
 
-file_path_1 = 'pkb/experiments/original.csv'
-file_path_2 = 'pkb/experiments/00_pkb_test.csv'
+file_path_1 = 'pkb/experiments/pkb_original.csv'
+file_path_2 = 'pkb/experiments/pkb_anonymized.csv'
 
 original = read_csv(file_path_1)
 anonymized_00 = read_csv(file_path_2)
 
 original.print_statistics()
 
-#angular_errors = original.calculate_angular_errors(anonymized_00, True)
+angular_errors = original.calculate_angular_errors(anonymized_00, False)
+#original.plot_angular_error_box_plots(angular_errors)
+#original.plot_density_plots(anonymized_00)
 
-original.plot_density_plots(anonymized_00)
+# Plot jointplot for the original and anonymized data
+original.plot_jointplot(anonymized_00)
