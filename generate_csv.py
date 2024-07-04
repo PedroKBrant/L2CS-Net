@@ -8,32 +8,60 @@ gaze_pipeline = Pipeline(
     arch='ResNet50',
     device=torch.device('cpu')  # or 'gpu'
 )
-input_folder = '/home/voxar/Desktop/pkb/GANonymization/lib/datasets/00_pkb_test'
+input_folder = '/home/voxar/Desktop/pkb/MetaGazeGANonymization'
 #input_folder = '/home/voxar/Desktop/pkb/GANonymization/lib/datasets/CelebA/celeba/img/FaceSegmentation/test/'
-output_file = 'pkb/experiments/teste.csv'
+output_file = '/home/voxar/Desktop/pkb/MetaHumansGANonymization.csv'
 
-# List all image files in the input folder
-image_files = [f for f in os.listdir(input_folder) if f.endswith(('.jpg', '.jpeg', '.png'))]
+def generate_csv(input_folder, output_file):
+    # List all folders in the input folder
+    MetaHumans = [name for name in os.listdir(input_folder) if os.path.isdir(os.path.join(input_folder, name))]
 
-# Sort the image files list
-image_files.sort()
+    # Sort the image files list
+    MetaHumans.sort()
+    with open(output_file, 'w') as f_out:
+        for MetaHuman in MetaHumans:
+            MetaHuman_path = input_folder+'/'+MetaHuman
+            images = [image_number for image_number in os.listdir(MetaHuman_path)]
+            images.sort()
+            for image in images:
+                frame = cv2.imread(os.path.join(MetaHuman_path, image))
+                try:
+                    result = gaze_pipeline.step(frame)
+                    bboxes_list = result.bboxes.tolist()  # Convert numpy array to Python list
+                    landmarks_list = result.landmarks.tolist()  # Convert numpy array to Python list
+                    # Write the result to the output file
 
-# Open the output file for writing
-with open(output_file, 'w') as f_out:
-    for image_file in image_files:
-        # Get the image name without the extension
-        img_name = os.path.splitext(image_file)[0].split('-')[-1]
+                    f_out.write(f"{MetaHuman+'_'+image.split('.')[0]}, {result.pitch[0]:.4f}, {result.yaw[0]:.4f}, \
+                                {bboxes_list[0][0]:.2f}, {bboxes_list[0][1]:.2f}, {bboxes_list[0][2]:.2f}, {bboxes_list[0][3]:.2f}, \
+                                {landmarks_list[0][0][0]:.2f}, {landmarks_list[0][0][1]:.2f},\
+                                {landmarks_list[0][1][0]:.2f}, {landmarks_list[0][1][1]:.2f},\
+                                {landmarks_list[0][2][0]:.2f}, {landmarks_list[0][2][1]:.2f},\
+                                {landmarks_list[0][3][0]:.2f}, {landmarks_list[0][3][1]:.2f},\
+                                {landmarks_list[0][4][0]:.2f}, {landmarks_list[0][4][1]:.2f},\
+                                {result.scores[0]:.4f}\n")
+                except:
+                    f_out.write(f"{MetaHuman+'_'+image}, {-10}, {-10}, {0}, {0}, {0}, {0}, {0}, {0},{0}\n")
+                    print(f"no results for {MetaHuman+'_'+image}")
+                
+    exit()
+    # Open the output file for writing
+    with open(output_file, 'w') as f_out:
+        for image_file in image_files:
+            # Get the image name without the extension
+            img_name = os.path.splitext(image_file)[0].split('-')[-1]
 
-        # Read the frame
-        frame = cv2.imread(os.path.join(input_folder, image_file))
+            # Read the frame
+            frame = cv2.imread(os.path.join(input_folder, image_file))
 
-        # Process frame and visualize
-        try:
-            result = gaze_pipeline.step(frame)
-            bboxes_list = result.bboxes.tolist()  # Convert numpy array to Python list
-            landmarks_list = result.landmarks.tolist()  # Convert numpy array to Python list
-            # Write the result to the output file
+            # Process frame and visualize
+            try:
+                result = gaze_pipeline.step(frame)
+                bboxes_list = result.bboxes.tolist()  # Convert numpy array to Python list
+                landmarks_list = result.landmarks.tolist()  # Convert numpy array to Python list
+                # Write the result to the output file
 
-            f_out.write(f"{img_name}, {result.pitch[0]}, {result.yaw[0]}, {bboxes_list[0]}, {landmarks_list[0][0]}, {landmarks_list[0][1]}, {landmarks_list[0][2]}, {landmarks_list[0][3]}, {landmarks_list[0][4]},{result.scores[0]}\n")
-        except:
-            print(f"no results for {image_file}")
+                f_out.write(f"{img_name}, {result.pitch[0]}, {result.yaw[0]}, {bboxes_list[0]}, {landmarks_list[0][0]}, {landmarks_list[0][1]}, {landmarks_list[0][2]}, {landmarks_list[0][3]}, {landmarks_list[0][4]},{result.scores[0]}\n")
+            except:
+                print(f"no results for {image_file}")
+                
+generate_csv(input_folder, output_file)
