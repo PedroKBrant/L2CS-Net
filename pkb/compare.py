@@ -75,7 +75,6 @@ class GazeCollection:
         errors = []
         # Create a dictionary for quick look-up of gazes by id in the other collection
         other_gazes_dict = {gaze.id: gaze for gaze in other_collection.gazes}
-
         for gaze in self.gazes:
             if gaze.id in other_gazes_dict:
                 other_gaze = other_gazes_dict[gaze.id]
@@ -118,10 +117,10 @@ class GazeCollection:
         yaw_errors = [abs(error[2]) for error in angular_errors]
 
         # Calculate means and standard deviations
-        mean_pitch_error = statistics.mean(pitch_errors)
-        std_pitch_error = statistics.stdev(pitch_errors)
-        mean_yaw_error = statistics.mean(yaw_errors)
-        std_yaw_error = statistics.stdev(yaw_errors)
+        mean_pitch_error = round(statistics.mean(pitch_errors), 4)
+        std_pitch_error = round(statistics.stdev(pitch_errors), 4)
+        mean_yaw_error = round(statistics.mean(yaw_errors), 4)
+        std_yaw_error = round(statistics.stdev(yaw_errors), 4)
 
         # Print mean and standard deviation for pitch and yaw errors
         print(f"Mean Pitch Error: {mean_pitch_error}")
@@ -129,6 +128,7 @@ class GazeCollection:
         print(f"Mean Yaw Error: {mean_yaw_error}")
         print(f"Standard Deviation of Yaw Error: {std_yaw_error}")
 
+        '''
         # Create a DataFrame for plotting
         data = {
             'Pitch Error': pitch_errors,
@@ -149,6 +149,7 @@ class GazeCollection:
 
         plt.tight_layout()
         plt.show()
+        '''
     
     def plot_jointplot(self, other_collection):
         # Extract pitch and yaw data from both collections
@@ -161,12 +162,12 @@ class GazeCollection:
         df1 = pd.DataFrame({
             'Pitch': pitch_data_1,
             'Yaw': yaw_data_1,
-            'Dataset': ['Original'] * len(pitch_data_1)
+            'Dataset': ['CelebA'] * len(pitch_data_1)
         })
         df2 = pd.DataFrame({
             'Pitch': pitch_data_2,
             'Yaw': yaw_data_2,
-            'Dataset': ['Anonymized'] * len(pitch_data_2)
+            'Dataset': ['MetaGaze'] * len(pitch_data_2)
         })
 
         df = pd.concat([df1, df2])
@@ -176,27 +177,42 @@ class GazeCollection:
         plt.show()
 
 def read_csv(filepath):
+    invalid_values=0
     collection = GazeCollection()
     with open(filepath, newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            id = int(row[0])
+            if('_' in row[0]):
+                id = str(row[0]).split('_')[1].lstrip('0').replace('.png', '')
+                if(len(id)==0):
+                    id = 0
+                id = int(id)
+            else:
+                id = int(row[0])
             pitch = float(row[1])
             yaw = float(row[2])
-            collection.add_gaze(Gaze(id, pitch, yaw))
+            if pitch > -5 and yaw > -5:
+                collection.add_gaze(Gaze(id, pitch, yaw))#Filter value -10, withc means error
+            else:
+                invalid_values=invalid_values+1
+    print("invalid_values", invalid_values)
     return collection
 
-file_path_1 = 'pkb/experiments/pkb_original.csv'
-file_path_2 = 'pkb/experiments/pkb_anonymized.csv'
 
-original = read_csv(file_path_1)
-anonymized_00 = read_csv(file_path_2)
+file_path_1 = '/home/voxar/Desktop/pkb/datasets/Experiments_MetaGaze/MetaGaze_testset.csv'
+#file_path_2 = 'pkb/experiments/pkb_anonymized.csv'
+file_path_2 = '/home/voxar/Desktop/pkb/datasets/Experiments_MetaGaze/Cel.csv'
 
-original.print_statistics()
+files_list = ['/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/Cel.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/Cel+MG.csv','/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/DP2.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MESH_02.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MESH_03.csv','/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MG.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MG+Cel.csv']
+original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/GroundTruth_MetaGaze.csv')
 
-angular_errors = original.calculate_angular_errors(anonymized_00, False)
-#original.plot_angular_error_box_plots(angular_errors)
+for file in files_list:
+    print(file)
+    anonymized = read_csv(file)
+    #anonymized.print_statistics()
+    angular_errors = original.calculate_angular_errors(anonymized, False)
+    original.plot_angular_error_box_plots(angular_errors)
 #original.plot_density_plots(anonymized_00)
 
 # Plot jointplot for the original and anonymized data
-original.plot_jointplot(anonymized_00)
+#original.plot_jointplot(anonymized_00)
