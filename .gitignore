@@ -3,6 +3,7 @@ datasets/
 evaluation/
 output/
 models/
+*.csv
 
 # Ignore debugging configurations
 /.vscode

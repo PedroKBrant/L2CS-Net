@@ -92,8 +92,9 @@ def generate_csv(input_folder, output_file):
 #inputs_path = ['/home/voxar/Desktop/pkb/datasets/Experiments_MetaGaze/MG', '/home/voxar/Desktop/pkb/datasets/Experiments_MetaGaze/Cel+MG', '/home/voxar/Desktop/pkb/datasets/Experiments_MetaGaze/MG+Cel']#'/home/voxar/Desktop/pkb/datasets/Experiments_MetaGaze/MetaGaze_testset', '/home/voxar/Desktop/pkb/datasets/Experiments_MetaGaze/Cel', 
 #inputs_path = [ '/home/voxar/Desktop/pkb/datasets/DMD/results/MG', '/home/voxar/Desktop/pkb/datasets/DMD/results/Cel+MG', '/home/voxar/Desktop/pkb/datasets/DMD/results/MG+Cel', '/home/voxar/Desktop/pkb/datasets/Mesh_results/02_DMD', '/home/voxar/Desktop/pkb/datasets/Mesh_results/02_MG', '/home/voxar/Desktop/pkb/datasets/Mesh_results/03_DMD', '/home/voxar/Desktop/pkb/datasets/Mesh_results/03_MG']
 #'/home/voxar/Desktop/pkb/datasets/dp2_results/DMD', '/home/voxar/Desktop/pkb/datasets/dp2_results/MetaGaze', '/home/voxar/Desktop/pkb/datasets/DMD/results/Cel',
-inputs_path = ['/home/voxar/Desktop/pkb/datasets/DMD/frames']
+inputs_path = ['/home/voxar/Desktop/pkb/datasets/Mesh_results/03_DMD']
 for path in inputs_path:
     print(path)  
-    output_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/DMD/BASELINE' +'.csv'
+    output_path = path +'.csv'
+    print(output_path)
     generate_csv(path, output_path)
