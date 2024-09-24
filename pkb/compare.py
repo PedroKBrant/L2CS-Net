@@ -224,49 +224,225 @@ for file in files_list:
 #original.plot_jointplot(anonymized_00)
 
 '''
-csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/camera'
-original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
-csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
-plot_list = []
-for file_path in csv_file_paths:
-    base_name = os.path.splitext(os.path.basename(file_path))[0]
-    #print('\n'+base_name+'\n_______________________')
-    anonymized = read_csv(file_path)
-    angular_errors = original.calculate_angular_errors(anonymized, False)
-    mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
-    plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
 
-plot_list.sort(key=lambda x: x[0])
+plot = 'eyecloseness'
 
-# Extract data from plot_list
-names = [x[0].rsplit('_', 1)[0] for x in plot_list] 
-pitch_errors = [x[1] for x in plot_list]
-yaw_errors = [x[2] for x in plot_list]
+if plot=='camera':
+    csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/camera'
+    original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
+    csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
+    plot_list = []
+    for file_path in csv_file_paths:
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        #print('\n'+base_name+'\n_______________________')
+        anonymized = read_csv(file_path)
+        angular_errors = original.calculate_angular_errors(anonymized, False)
+        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
 
-# Set up bar positions
-x = np.arange(len(names))  # Positions for each camera name
-width = 0.35  # Width of the bars
+    plot_list.sort(key=lambda x: x[0])
+    variations =2 
+    # Generate the new fused list
+    fused_list = [(plot_list[i][0], plot_list[i][1], plot_list[i][2], plot_list[i+1][1], plot_list[i+1][2]) 
+                for i in range(0, len(plot_list), variations)]
+    names = [x[0].rsplit('_', 1)[0] for x in fused_list] 
+    pitch_errors = [x[1] for x in fused_list]
+    yaw_errors = [x[2] for x in fused_list]
+    pitch_errors2 = [x[3] for x in fused_list]
+    yaw_errors2 = [x[4] for x in fused_list]
+    x = np.arange(len(names))  
+    width = 0.2  # Smaller width to accommodate more bars
 
-# Create the plot
-fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
 
-# Plot pitch and yaw errors side by side
-bars1 = ax.bar(x - width/2, pitch_errors, width, label='Pitch', color='b')
-bars2 = ax.bar(x + width/2, yaw_errors, width, label='Yaw', color='r')
+    # Adjust positions for bars1, bars2, bars3, and bars4
+    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, label='Pitch camera < 10', color='b')  # First group
+    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch camera > 10', color='g')  # Third group
+    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw camera < 10', color='r')      # Second group
+    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw camera > 10', color='y')      # Fourth group
 
-# Add labels and title
-ax.set_xlabel('Camera')
-ax.set_ylabel('Mean Error')
-ax.set_title('Pitch and Yaw Mean Errors by Camera')
-ax.set_xticks(x)
-ax.set_xticklabels(names, rotation=45, ha='right')  # Rotate labels for better readability
+    # Add labels and title
+    ax.set_xlabel('Camera')
+    ax.set_ylabel('Mean Error')
+    ax.set_title('Pitch and Yaw Mean Errors by Camera')
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, rotation=45, ha='right')  # Rotate labels for better readability
+    ax.legend()
 
-# Set y-axis ticks at 0.05 intervals
-ax.set_yticks(np.arange(0, max(max(pitch_errors), max(yaw_errors)) + 0.05, 0.05))
-# Add grid to the plot with steps of 0.05
-ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-ax.legend()
+    # Set y-axis ticks at 0.05 intervals
+    ax.set_yticks(np.arange(0, max(max(pitch_errors), max(yaw_errors)) + 0.05, 0.05))
 
-# Display the plot
-plt.tight_layout()
-plt.show()
+    # Add grid to the plot with steps of 0.05
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Display the plot
+    plt.tight_layout()
+    plt.show()
+
+elif plot=='gaze':
+    csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/gaze'
+    original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
+    csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
+    plot_list = []
+    for file_path in csv_file_paths:
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        #print('\n'+base_name+'\n_______________________')
+        anonymized = read_csv(file_path)
+        angular_errors = original.calculate_angular_errors(anonymized, False)
+        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
+
+    plot_list.sort(key=lambda x: x[0])
+    variations =2 
+    # Generate the new fused list
+    fused_list = [(plot_list[i][0], plot_list[i][1], plot_list[i][2], plot_list[i+1][1], plot_list[i+1][2]) 
+                for i in range(0, len(plot_list), variations)]
+    names = [x[0].rsplit('_', 1)[0] for x in fused_list] 
+    pitch_errors = [x[1] for x in fused_list]
+    yaw_errors = [x[2] for x in fused_list]
+    pitch_errors2 = [x[3] for x in fused_list]
+    yaw_errors2 = [x[4] for x in fused_list]
+    x = np.arange(len(names))  
+    width = 0.2  # Smaller width to accommodate more bars
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Adjust positions for bars1, bars2, bars3, and bars4
+    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, label='Pitch gaze < 30', color='b')  # First group
+    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch gaze > 30', color='g')  # Third group
+    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw gaze < 30', color='r')      # Second group
+    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw gaze > 30', color='y')      # Fourth group
+
+    # Add labels and title
+    ax.set_xlabel('Gaze')
+    ax.set_ylabel('Mean Error')
+    ax.set_title('Pitch and Yaw Mean Errors by Gaze')
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, rotation=45, ha='right')  # Rotate labels for better readability
+    ax.legend()
+
+    # Set y-axis ticks at 0.05 intervals
+    ax.set_yticks(np.arange(0, max(max(pitch_errors), max(yaw_errors)) + 0.05, 0.05))
+
+    # Add grid to the plot with steps of 0.05
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Display the plot
+    plt.tight_layout()
+    plt.show()
+
+elif plot=='fov':
+    csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/fov'
+    original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
+    csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
+    plot_list = []
+    for file_path in csv_file_paths:
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        #print('\n'+base_name+'\n_______________________')
+        anonymized = read_csv(file_path)
+        angular_errors = original.calculate_angular_errors(anonymized, False)
+        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
+
+    plot_list.sort(key=lambda x: x[0])
+    variations =3 
+    # Generate the new fused list
+    fused_list = [(plot_list[i][0], plot_list[i][1], plot_list[i][2], plot_list[i+1][1], plot_list[i+1][2], plot_list[i+2][1], plot_list[i+2][2]) 
+                for i in range(0, len(plot_list), variations)]
+    names = [x[0].rsplit('_', 1)[0] for x in fused_list] 
+    pitch_errors = [x[1] for x in fused_list]
+    yaw_errors = [x[2] for x in fused_list]
+    pitch_errors2 = [x[3] for x in fused_list]
+    yaw_errors2 = [x[4] for x in fused_list]
+    pitch_errors3 = [x[5] for x in fused_list]
+    yaw_errors3 = [x[6] for x in fused_list]
+    x = np.arange(len(names))  
+    width = 0.12  # Smaller width to accommodate more bars
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bars1 = ax.bar(x - 2.5 * width, pitch_errors, width, label='Pitch fov = 60', color='b')  # First group
+    bars2 = ax.bar(x - 1.5 * width, pitch_errors2, width, label='Pitch fov = 90', color='g')  # Third group
+    bars3 = ax.bar(x - 0.5 * width, pitch_errors3, width, label='Pitch fov = 120', color='c')  # Fifth group
+
+    bars4 = ax.bar(x + 0.5 * width, yaw_errors, width, label='Yaw fov = 60', color='r')      # Second group
+    bars5 = ax.bar(x + 1.5 * width, yaw_errors2, width, label='Yaw fov = 90', color='y')      # Fourth group
+    bars6 = ax.bar(x + 2.5 * width, yaw_errors3, width, label='Yaw fov = 120', color='m')      # Sixth group
+
+    # Add labels and title
+    ax.set_xlabel('FoV')
+    ax.set_ylabel('Mean Error')
+    ax.set_title('Pitch and Yaw Mean Errors by FoV')
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, rotation=45, ha='right')  # Rotate labels for better readability
+    ax.legend()
+
+    # Set y-axis ticks at 0.05 intervals
+    ax.set_yticks(np.arange(0, max(max(pitch_errors), max(yaw_errors)) + 0.05, 0.05))
+
+    # Add grid to the plot with steps of 0.05
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Display the plot
+    plt.tight_layout()
+    plt.show()
+
+elif plot=='eyecloseness':
+    csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/eyecloseness'
+    original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
+    csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
+    plot_list = []
+    for file_path in csv_file_paths:
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        #print('\n'+base_name+'\n_______________________')
+        anonymized = read_csv(file_path)
+        angular_errors = original.calculate_angular_errors(anonymized, False)
+        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
+
+    plot_list.sort(key=lambda x: x[0])
+    variations =4 
+    # Generate the new fused list
+    fused_list = [(plot_list[i][0], plot_list[i][1], plot_list[i][2], plot_list[i+1][1], plot_list[i+1][2], plot_list[i+2][1], plot_list[i+2][2], plot_list[i+3][1], plot_list[i+3][2]) 
+                for i in range(0, len(plot_list), variations)]
+    names = [x[0].rsplit('_', 1)[0] for x in fused_list] 
+    pitch_errors = [x[1] for x in fused_list]
+    yaw_errors = [x[2] for x in fused_list]
+    pitch_errors2 = [x[3] for x in fused_list]
+    yaw_errors2 = [x[4] for x in fused_list]
+    pitch_errors3 = [x[5] for x in fused_list]
+    yaw_errors3 = [x[6] for x in fused_list]
+    pitch_errors4 = [x[7] for x in fused_list]
+    yaw_errors4 = [x[8] for x in fused_list]
+    x = np.arange(len(names))  
+    width = 0.1  # Smaller width to accommodate more bars
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bars1 = ax.bar(x - 3.5 * width, pitch_errors, width, label='Pitch eye semi closed', color='b')  # First group
+    bars3 = ax.bar(x - 2.5 * width, pitch_errors2, width, label='Pitch eye half closed ', color='g')  # Third group
+    bars5 = ax.bar(x - 1.5 * width, pitch_errors3, width, label='Pitch eye opened', color='c')  # Fifth group
+    bars7 = ax.bar(x - 0.5 * width, pitch_errors4, width, label='Pitch eye wide opened', color='k')  # Seventh group
+
+    bars2 = ax.bar(x + 0.5 * width, yaw_errors, width, label='Yaw eye semi closed ', color='r')      # Second group
+    bars4 = ax.bar(x + 1.5 * width, yaw_errors2, width, label='Yaw eye half closed ', color='y')      # Fourth group
+    bars6 = ax.bar(x + 2.5 * width, yaw_errors3, width, label='Yaw eye opened', color='m')      # Sixth group
+    bars8 = ax.bar(x + 3.5 * width, yaw_errors4, width, label='Yaw eye wide opened', color='0.6')      # Eighth group
+
+    # Add labels and title
+    ax.set_xlabel('eyecloseness')
+    ax.set_ylabel('Mean Error')
+    ax.set_title('Pitch and Yaw Mean Errors by eyecloseness')
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, rotation=45, ha='right')  # Rotate labels for better readability
+    ax.legend()
+
+    # Set y-axis ticks at 0.05 intervals
+    ax.set_yticks(np.arange(0, max(max(pitch_errors), max(yaw_errors)) + 0.05, 0.05))
+
+    # Add grid to the plot with steps of 0.05
+    ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+    # Display the plot
+    plt.tight_layout()
+    plt.show()
