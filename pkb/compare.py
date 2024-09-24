@@ -139,7 +139,6 @@ class GazeCollection:
         print(f"Mean Yaw Error: {mean_yaw_error}")
         #print(f"Standard Deviation of Yaw Error: {std_yaw_error}")
 
-        
         if(plot_flag):
             data = {
                 'Pitch Error': pitch_errors,
@@ -224,7 +223,7 @@ for file in files_list:
 #original.plot_jointplot(anonymized_00)
 
 '''
-
+color = ['#674ea7','#8e7cc3','#b4a7d6','#d9d2e9','#a64d79','#c27ba0','#d5a6bd','#ead1dc']
 plot = 'eyecloseness'
 
 if plot=='camera':
@@ -256,10 +255,10 @@ if plot=='camera':
     fig, ax = plt.subplots(figsize=(10, 6))
 
     # Adjust positions for bars1, bars2, bars3, and bars4
-    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, label='Pitch camera < 10', color='b')  # First group
-    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch camera > 10', color='g')  # Third group
-    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw camera < 10', color='r')      # Second group
-    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw camera > 10', color='y')      # Fourth group
+    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, label='Pitch camera < 10', color=color[0])  # First group
+    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch camera > 10', color=color[1])  # Third group
+    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw camera < 10', color=color[2])      # Second group
+    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw camera > 10', color=color[3])      # Fourth group
 
     # Add labels and title
     ax.set_xlabel('Camera')
@@ -308,10 +307,10 @@ elif plot=='gaze':
     fig, ax = plt.subplots(figsize=(10, 6))
 
     # Adjust positions for bars1, bars2, bars3, and bars4
-    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, label='Pitch gaze < 30', color='b')  # First group
-    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch gaze > 30', color='g')  # Third group
-    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw gaze < 30', color='r')      # Second group
-    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw gaze > 30', color='y')      # Fourth group
+    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, label='Pitch gaze < 30', color=color[0])  # First group
+    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch gaze > 30', color=color[1])  # Third group
+    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw gaze < 30', color=color[2])      # Second group
+    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw gaze > 30', color=color[3])      # Fourth group
 
     # Add labels and title
     ax.set_xlabel('Gaze')
@@ -361,13 +360,13 @@ elif plot=='fov':
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    bars1 = ax.bar(x - 2.5 * width, pitch_errors, width, label='Pitch fov = 60', color='b')  # First group
-    bars2 = ax.bar(x - 1.5 * width, pitch_errors2, width, label='Pitch fov = 90', color='g')  # Third group
-    bars3 = ax.bar(x - 0.5 * width, pitch_errors3, width, label='Pitch fov = 120', color='c')  # Fifth group
+    bars1 = ax.bar(x - 2.5 * width, pitch_errors, width, label='Pitch fov = 60', color=color[0])  # First group
+    bars2 = ax.bar(x - 1.5 * width, pitch_errors2, width, label='Pitch fov = 90', color=color[1])  # Third group
+    bars3 = ax.bar(x - 0.5 * width, pitch_errors3, width, label='Pitch fov = 120', color=color[2])  # Fifth group
 
-    bars4 = ax.bar(x + 0.5 * width, yaw_errors, width, label='Yaw fov = 60', color='r')      # Second group
-    bars5 = ax.bar(x + 1.5 * width, yaw_errors2, width, label='Yaw fov = 90', color='y')      # Fourth group
-    bars6 = ax.bar(x + 2.5 * width, yaw_errors3, width, label='Yaw fov = 120', color='m')      # Sixth group
+    bars4 = ax.bar(x + 0.5 * width, yaw_errors, width, label='Yaw fov = 60', color=color[3])      # Second group
+    bars5 = ax.bar(x + 1.5 * width, yaw_errors2, width, label='Yaw fov = 90', color=color[4])      # Fourth group
+    bars6 = ax.bar(x + 2.5 * width, yaw_errors3, width, label='Yaw fov = 120', color=color[5])      # Sixth group
 
     # Add labels and title
     ax.set_xlabel('FoV')
@@ -419,15 +418,15 @@ elif plot=='eyecloseness':
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    bars1 = ax.bar(x - 3.5 * width, pitch_errors, width, label='Pitch eye semi closed', color='b')  # First group
-    bars3 = ax.bar(x - 2.5 * width, pitch_errors2, width, label='Pitch eye half closed ', color='g')  # Third group
-    bars5 = ax.bar(x - 1.5 * width, pitch_errors3, width, label='Pitch eye opened', color='c')  # Fifth group
-    bars7 = ax.bar(x - 0.5 * width, pitch_errors4, width, label='Pitch eye wide opened', color='k')  # Seventh group
+    bars1 = ax.bar(x - 3.5 * width, pitch_errors, width, label='Pitch eye semi closed', color=color[0])  # First group
+    bars3 = ax.bar(x - 2.5 * width, pitch_errors2, width, label='Pitch eye half closed ', color=color[1])  # Third group
+    bars5 = ax.bar(x - 1.5 * width, pitch_errors3, width, label='Pitch eye opened', color=color[2])  # Fifth group
+    bars7 = ax.bar(x - 0.5 * width, pitch_errors4, width, label='Pitch eye wide opened', color=color[3])  # Seventh group
 
-    bars2 = ax.bar(x + 0.5 * width, yaw_errors, width, label='Yaw eye semi closed ', color='r')      # Second group
-    bars4 = ax.bar(x + 1.5 * width, yaw_errors2, width, label='Yaw eye half closed ', color='y')      # Fourth group
-    bars6 = ax.bar(x + 2.5 * width, yaw_errors3, width, label='Yaw eye opened', color='m')      # Sixth group
-    bars8 = ax.bar(x + 3.5 * width, yaw_errors4, width, label='Yaw eye wide opened', color='0.6')      # Eighth group
+    bars2 = ax.bar(x + 0.5 * width, yaw_errors, width, label='Yaw eye semi closed ', color=color[4])      # Second group
+    bars4 = ax.bar(x + 1.5 * width, yaw_errors2, width, label='Yaw eye half closed ', color=color[5])      # Fourth group
+    bars6 = ax.bar(x + 2.5 * width, yaw_errors3, width, label='Yaw eye opened', color=color[6])      # Sixth group
+    bars8 = ax.bar(x + 3.5 * width, yaw_errors4, width, label='Yaw eye wide opened', color=color[7])      # Eighth group
 
     # Add labels and title
     ax.set_xlabel('eyecloseness')
