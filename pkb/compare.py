@@ -3,6 +3,9 @@ import statistics
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
+import glob
+import os
 
 class Gaze:
     def __init__(self, id, pitch, yaw):
@@ -111,6 +114,14 @@ class GazeCollection:
         plt.tight_layout()
         plt.show()
         
+    def calculate_mean_error(self, angular_errors):
+        pitch_errors = [abs(error[1]) for error in angular_errors]
+        yaw_errors = [abs(error[2]) for error in angular_errors]
+
+        mean_pitch_error = round(statistics.mean(pitch_errors), 4)
+        mean_yaw_error = round(statistics.mean(yaw_errors), 4)
+        return mean_pitch_error, mean_yaw_error
+
     def plot_angular_error_box_plots(self, angular_errors, plot_flag=True):
         # Extract pitch and yaw errors
         pitch_errors = [abs(error[1]) for error in angular_errors]
@@ -196,9 +207,9 @@ def read_csv(filepath):
             else:
                 invalid_values=invalid_values+1
 
-    print("invalid_values", round(invalid_values/6984, 3))
+    #print("invalid_values", round(invalid_values/6984, 3))
     return collection
-
+'''
 files_list = ['/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/Cel.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/Cel+MG.csv','/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/DP2.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MESH_02.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MESH_03.csv','/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MG.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MG+Cel.csv']
 original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
 
@@ -211,3 +222,51 @@ for file in files_list:
 #original.plot_density_plots(anonymized_00)
 # Plot jointplot for the original and anonymized data
 #original.plot_jointplot(anonymized_00)
+
+'''
+csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/camera'
+original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
+csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
+plot_list = []
+for file_path in csv_file_paths:
+    base_name = os.path.splitext(os.path.basename(file_path))[0]
+    #print('\n'+base_name+'\n_______________________')
+    anonymized = read_csv(file_path)
+    angular_errors = original.calculate_angular_errors(anonymized, False)
+    mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+    plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
+
+plot_list.sort(key=lambda x: x[0])
+
+# Extract data from plot_list
+names = [x[0].rsplit('_', 1)[0] for x in plot_list] 
+pitch_errors = [x[1] for x in plot_list]
+yaw_errors = [x[2] for x in plot_list]
+
+# Set up bar positions
+x = np.arange(len(names))  # Positions for each camera name
+width = 0.35  # Width of the bars
+
+# Create the plot
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Plot pitch and yaw errors side by side
+bars1 = ax.bar(x - width/2, pitch_errors, width, label='Pitch', color='b')
+bars2 = ax.bar(x + width/2, yaw_errors, width, label='Yaw', color='r')
+
+# Add labels and title
+ax.set_xlabel('Camera')
+ax.set_ylabel('Mean Error')
+ax.set_title('Pitch and Yaw Mean Errors by Camera')
+ax.set_xticks(x)
+ax.set_xticklabels(names, rotation=45, ha='right')  # Rotate labels for better readability
+
+# Set y-axis ticks at 0.05 intervals
+ax.set_yticks(np.arange(0, max(max(pitch_errors), max(yaw_errors)) + 0.05, 0.05))
+# Add grid to the plot with steps of 0.05
+ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+ax.legend()
+
+# Display the plot
+plt.tight_layout()
+plt.show()
