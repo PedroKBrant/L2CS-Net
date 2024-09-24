@@ -76,7 +76,6 @@ class GazeCollection:
 
     def calculate_angular_errors(self, other_collection, visualize=False):
         errors = []
-        # Create a dictionary for quick look-up of gazes by id in the other collection
         other_gazes_dict = {gaze.id: gaze for gaze in other_collection.gazes}
         for gaze in self.gazes:
             if gaze.id in other_gazes_dict:
@@ -198,7 +197,7 @@ def read_csv(filepath):
                     id = 0
                 id = int(id)
             else:
-                id = str(row[0])
+                id = str(row[0]).split('_')[1] if '_' in str(row[0]) else str(row[0])
             pitch = float(row[1])
             yaw = float(row[2])
             if pitch > -5 and yaw > -5:
@@ -228,7 +227,7 @@ plot = 'eyecloseness'
 
 if plot=='camera':
     csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/camera'
-    original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
+    original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/groundtruth.csv')
     csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
     plot_list = []
     for file_path in csv_file_paths:
