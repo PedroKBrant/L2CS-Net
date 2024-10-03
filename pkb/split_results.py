@@ -110,11 +110,9 @@ groups = {
 
 }
 
-# Get all CSV file paths from the directory
 csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/'
-csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))  # Finds all .csv files
+csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv')) 
 
-# Loop through each CSV file
 for file_path in csv_file_paths:
     base_name = os.path.splitext(os.path.basename(file_path))[0]
     print(base_name)

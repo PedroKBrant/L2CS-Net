@@ -7,6 +7,24 @@ import numpy as np
 import glob
 import os
 
+def normalize_angle(angle):
+    if (angle>1.8):
+        return (angle - 1.80)
+    if (angle<-1.8):
+        return (angle + 1.80)
+    return angle
+
+def index_of_max_abs_value(angular_errors):
+    # Combine pitch and yaw errors by summing their absolute values for each case
+    combined_errors = [(error[0], abs(error[1]) + abs(error[2])) for error in angular_errors]
+    
+    # Sort the errors based on the combined absolute errors in descending order
+    sorted_errors = sorted(combined_errors, key=lambda x: x[1], reverse=True)
+    
+    # Get the top 3 identifiers (error[0])
+    top_3_identifiers = [error[0] for error in sorted_errors[:3]]
+    print(top_3_identifiers)
+
 class Gaze:
     def __init__(self, id, pitch, yaw):
         self.id = id
@@ -80,9 +98,9 @@ class GazeCollection:
         for gaze in self.gazes:
             if gaze.id in other_gazes_dict:
                 other_gaze = other_gazes_dict[gaze.id]
-                pitch_error = gaze.pitch - other_gaze.pitch
-                yaw_error = gaze.yaw - other_gaze.yaw
-                errors.append((gaze.id, pitch_error, yaw_error))
+                pitch_error = normalize_angle(gaze.pitch - other_gaze.pitch)
+                yaw_error = normalize_angle(gaze.yaw - other_gaze.yaw)
+                errors.append((gaze.id, round(pitch_error, 4), round(yaw_error, 4)))
         if visualize:
             for error in errors:
                 print(f"ID: {error[0]}, Pitch Error: {error[1]}, Yaw Error: {error[2]}")
@@ -113,24 +131,43 @@ class GazeCollection:
         plt.tight_layout()
         plt.show()
         
+
     def calculate_mean_error(self, angular_errors):
-        pitch_errors = [abs(error[1]) for error in angular_errors]
-        yaw_errors = [abs(error[2]) for error in angular_errors]
+        # Use abs() for MAE
+        pitch_errors_abs = [abs(error[1]) for error in angular_errors]  # For MAE
+        yaw_errors_abs = [abs(error[2]) for error in angular_errors]    # For MAE
+        
+        # Do not use abs() for standard deviation
+        pitch_errors = [error[1] for error in angular_errors]
+        yaw_errors = [error[2] for error in angular_errors]
+        
+        # Mean Absolute Error (MAE)
+        mean_pitch_errors = round(statistics.mean(pitch_errors_abs), 4)
+        mean_yaw_errors = round(statistics.mean(yaw_errors_abs), 4)
 
-        mean_pitch_error = round(statistics.mean(pitch_errors), 4)
-        mean_yaw_error = round(statistics.mean(yaw_errors), 4)
-        return mean_pitch_error, mean_yaw_error
-
+        std_pitch_errors = round(statistics.stdev(pitch_errors), 4)
+        std_yaw_errors = round(statistics.stdev(yaw_errors), 4)
+        # Standard deviation (without abs)
+        '''
+        plt.figure(figsize=(8, 6))
+        plt.hist(pitch_errors, bins=20, alpha=0.7, label='Pitch Errors')
+        plt.hist(yaw_errors, bins=20, alpha=0.7, label='Yaw Errors')
+        plt.title('Histogram of Pitch and Yaw Errors')
+        plt.legend()
+        plt.show()
+        '''
+        return mean_pitch_errors, mean_yaw_errors, std_pitch_errors, std_yaw_errors
+    
     def plot_angular_error_box_plots(self, angular_errors, plot_flag=True):
         # Extract pitch and yaw errors
         pitch_errors = [abs(error[1]) for error in angular_errors]
         yaw_errors = [abs(error[2]) for error in angular_errors]
 
         # Calculate means and standard deviations
-        mean_pitch_error = round(statistics.mean(pitch_errors), 4)
-        std_pitch_error = round(statistics.stdev(pitch_errors), 4)
-        mean_yaw_error = round(statistics.mean(yaw_errors), 4)
-        std_yaw_error = round(statistics.stdev(yaw_errors), 4)
+        mean_pitch_error = round(statistics.mean(pitch_errors), 3)
+        std_pitch_error = round(statistics.stdev(pitch_errors), 3)
+        mean_yaw_error = round(statistics.mean(yaw_errors), 3)
+        std_yaw_error = round(statistics.stdev(yaw_errors), 3)
 
         # Print mean and standard deviation for pitch and yaw errors
         print(f"Mean Pitch Error: {mean_pitch_error}")
@@ -207,57 +244,80 @@ def read_csv(filepath):
 
     #print("invalid_values", round(invalid_values/6984, 3))
     return collection
-'''
+
 files_list = ['/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/Cel.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/Cel+MG.csv','/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/DP2.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MESH_02.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MESH_03.csv','/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MG.csv', '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/MG+Cel.csv']
-original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/msc/MetaGaze/BASELINE.csv')
+original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/groundtruth.csv')
+
 
 for file in files_list:
     print(file)
     anonymized = read_csv(file)
     #anonymized.print_statistics()
     angular_errors = original.calculate_angular_errors(anonymized, False)
-    original.plot_angular_error_box_plots(angular_errors)
+    #index_of_max_abs_value(angular_errors)
+    #original.plot_angular_error_box_plots(angular_errors, False)
+
 #original.plot_density_plots(anonymized_00)
 # Plot jointplot for the original and anonymized data
 #original.plot_jointplot(anonymized_00)
 
-'''
 color = ['#674ea7','#8e7cc3','#b4a7d6','#d9d2e9','#a64d79','#c27ba0','#d5a6bd','#ead1dc']
 plot = 'eyecloseness'
 
-if plot=='camera':
+if plot == 'camera':
     csv_dir_path = '/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/camera'
     original = read_csv('/home/voxar/Desktop/pkb/L2CS-Net-1/pkb/splitted/groundtruth.csv')
     csv_file_paths = glob.glob(os.path.join(csv_dir_path, '*.csv'))
     plot_list = []
+    plot_std_deviation = []
     for file_path in csv_file_paths:
         base_name = os.path.splitext(os.path.basename(file_path))[0]
-        #print('\n'+base_name+'\n_______________________')
         anonymized = read_csv(file_path)
         angular_errors = original.calculate_angular_errors(anonymized, False)
-        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        mean_pitch_error, mean_yaw_error, std_pitch_error, std_yaw_error = original.calculate_mean_error(angular_errors)
         plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
+        plot_std_deviation.append((base_name, std_pitch_error, std_yaw_error))
 
     plot_list.sort(key=lambda x: x[0])
-    variations =2 
-    # Generate the new fused list
+    plot_std_deviation.sort(key=lambda x: x[0])
+    variations = 2
+    # Generate the new fused list for errors and std deviations
     fused_list = [(plot_list[i][0], plot_list[i][1], plot_list[i][2], plot_list[i+1][1], plot_list[i+1][2]) 
-                for i in range(0, len(plot_list), variations)]
+                  for i in range(0, len(plot_list), variations)]
+    
+    fused_std_deviation = [(plot_std_deviation[i][0], plot_std_deviation[i][1], plot_std_deviation[i][2],plot_std_deviation[i+1][2], plot_std_deviation[i+1][2]) 
+                           for i in range(0, len(plot_std_deviation), variations)]
+
     names = [x[0].rsplit('_', 1)[0] for x in fused_list] 
     pitch_errors = [x[1] for x in fused_list]
     yaw_errors = [x[2] for x in fused_list]
     pitch_errors2 = [x[3] for x in fused_list]
     yaw_errors2 = [x[4] for x in fused_list]
+    
+    # Standard deviations
+    names = [x[0].rsplit('_', 1)[0] for x in fused_std_deviation] 
+    pitch_std_devs = [x[1] for x in fused_std_deviation]
+    yaw_std_devs = [x[2] for x in fused_std_deviation]
+    pitch_std_devs2 = [x[3] for x in fused_std_deviation]
+    yaw_std_devs2 = [x[4] for x in fused_std_deviation]
+
     x = np.arange(len(names))  
     width = 0.2  # Smaller width to accommodate more bars
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Adjust positions for bars1, bars2, bars3, and bars4
-    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, label='Pitch camera < 10', color=color[0])  # First group
-    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch camera > 10', color=color[1])  # Third group
-    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw camera < 10', color=color[2])      # Second group
-    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw camera > 10', color=color[3])      # Fourth group
+    # Plot bars with error bars (std deviations)
+    '''
+    bars1 = ax.bar(x - 1.5*width, pitch_errors, width, yerr=pitch_std_devs, label='Pitch camera < 10', color=color[0], capsize=4)
+    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, yerr=pitch_std_devs2, label='Pitch camera > 10', color=color[1], capsize=4)
+    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, yerr=yaw_std_devs, label='Yaw camera < 10', color=color[5], capsize=4)
+    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, yerr=yaw_std_devs2, label='Yaw camera > 10', color=color[6], capsize=4)
+    '''
+
+    bars1 = ax.bar(x - 1.5*width, pitch_errors, width,  label='Pitch camera < 10', color=color[0], capsize=4)
+    bars2 = ax.bar(x - 0.5*width, pitch_errors2, width, label='Pitch camera > 10', color=color[1], capsize=4)
+    bars3 = ax.bar(x + 0.5*width, yaw_errors, width, label='Yaw camera < 10', color=color[5], capsize=4)
+    bars4 = ax.bar(x + 1.5*width, yaw_errors2, width, label='Yaw camera > 10', color=color[6], capsize=4)
 
     # Add labels and title
     ax.set_xlabel('Camera')
@@ -287,7 +347,7 @@ elif plot=='gaze':
         #print('\n'+base_name+'\n_______________________')
         anonymized = read_csv(file_path)
         angular_errors = original.calculate_angular_errors(anonymized, False)
-        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        mean_pitch_error, mean_yaw_error, std_pitch_error, std_yaw_error  = original.calculate_mean_error(angular_errors)
         plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
 
     plot_list.sort(key=lambda x: x[0])
@@ -339,7 +399,7 @@ elif plot=='fov':
         #print('\n'+base_name+'\n_______________________')
         anonymized = read_csv(file_path)
         angular_errors = original.calculate_angular_errors(anonymized, False)
-        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        mean_pitch_error, mean_yaw_error, std_pitch_error, std_yaw_error  = original.calculate_mean_error(angular_errors)
         plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
 
     plot_list.sort(key=lambda x: x[0])
@@ -395,7 +455,7 @@ elif plot=='eyecloseness':
         #print('\n'+base_name+'\n_______________________')
         anonymized = read_csv(file_path)
         angular_errors = original.calculate_angular_errors(anonymized, False)
-        mean_pitch_error, mean_yaw_error = original.calculate_mean_error(angular_errors)
+        mean_pitch_error, mean_yaw_error, std_pitch_error, std_yaw_error  = original.calculate_mean_error(angular_errors)
         plot_list.append((base_name, mean_pitch_error, mean_yaw_error))
 
     plot_list.sort(key=lambda x: x[0])
@@ -428,9 +488,9 @@ elif plot=='eyecloseness':
     bars8 = ax.bar(x + 3.5 * width, yaw_errors4, width, label='Yaw eye wide opened', color=color[7])      # Eighth group
 
     # Add labels and title
-    ax.set_xlabel('eyecloseness')
+    ax.set_xlabel('Eye Closeness')
     ax.set_ylabel('Mean Error')
-    ax.set_title('Pitch and Yaw Mean Errors by eyecloseness')
+    ax.set_title('Pitch and Yaw Mean Errors by eye closeness')
     ax.set_xticks(x)
     ax.set_xticklabels(names, rotation=45, ha='right')  # Rotate labels for better readability
     ax.legend()
